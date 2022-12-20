@@ -334,7 +334,6 @@ class LogWindow(QMainWindow):
 
         if(self.status == 'False' or self.status == False):
             self.status = False
-            self.mqtt =  Mqtt(self.nick, self.username, 'public', 'broker.emqx.io', 1883)
         else:
             self.status = True      
 
