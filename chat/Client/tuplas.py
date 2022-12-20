@@ -52,6 +52,7 @@ def listOnline():
         return list(online[1])
     except: 
         print(f"Tuple matching not found")
+        
 def listOffline():
     try:
         offline = tse.rdp(("OFFLINE",object))    

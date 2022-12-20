@@ -5,8 +5,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import tuplas as ts
 from config import*
-# from tuplas import *
 
+from mqtt import *
 # Função de criação da janela de Log
 def createWindowLog():
     app = QApplication(sys.argv) # Recebe instância da aplicação em Qt
@@ -14,8 +14,9 @@ def createWindowLog():
     win.show() # mostra a janela
     app.exec_() # interrompe execução da aplicação
     
+    
     # Retorna parâmetros do usuário para iniciar chat
-    return (win.name, win.nick ,win.addr, win.prt)
+    return (win.name, win.nick , win.status, win.addr, win.prt)
 
 # Classe da tela de login
 # - cria interface para login
@@ -329,18 +330,17 @@ class LogWindow(QMainWindow):
         if len(self.distancia)==0:
             self.distancia = 50
         if len(self.status)==0:
-            self.status = True
+            self.status = True      
+
+        if(self.status == 'False' or self.status == False):
+            self.status = False
+            self.mqtt =  Mqtt(self.nick, self.username, 'public', 'broker.emqx.io', 1883)
+        else:
+            self.status = True      
 
         data = [self.name,self.nick,self.status,self.latitude,self.longitude,self.distancia]
         ts.createUser(data)
-        self.close()
-
-        # # (2) Se algum dos campos estiver vazio é solicitado ao cliente que insira todos os dados
-        # if len(self.name) == 0 or len(self.addr) == 0 or len(self.prt) == 0:
-        #     self.error.setText(QCoreApplication.translate("Form", u"Por favor, preencha todos os campos!", None))
-        # else:    
-        #     # Encerrando janela de login
-        #     self.close()
+        self.close()        
 
     # Detecta event key
     def keyPressEvent(self, event):

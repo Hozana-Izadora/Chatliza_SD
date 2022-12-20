@@ -10,7 +10,7 @@ from config import*
 class Client():
 
     # Inicilizando cliente socket
-    def __init__(self, username, nick, address, port, win):
+    def __init__(self, username, nick, status, address, port, win):
 
         # Define família e tipo da conexão (AF_INET -> IPV4 | SOCK_STREAM -> TCP)
         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,8 +22,11 @@ class Client():
         # Recebe parâmetros
         self.username = username # define username da instância
         self.nick = nick
+        self.status = status
         self.win = win # salva referência da janela p comunicação
         self.online = True # seta cliente como online
+        # else:
+        #     self.online = False # seta cliente como offline
 
         # Enviando nome do usuário ao servidor
         message, send_length = encodeMsg(self.username)

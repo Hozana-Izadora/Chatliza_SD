@@ -12,6 +12,7 @@ class MySignal(QtCore.QObject):
 	
 	# Define sinais enviados pela thread_recv a janela principal
 	listUser = QtCore.pyqtSignal(str) # ação sobre lista de usuários conectados
+	listUserOFF = QtCore.pyqtSignal() # ação sobre lista de usuários conectados
 	chatLabel = QtCore.pyqtSignal(str) # ação sobre text browser do chat
 	
 
@@ -26,7 +27,7 @@ class MySignal(QtCore.QObject):
 class MainWindow(QMainWindow):
 
 	# Inicializa janela principal
-	def __init__(self, username, nick, address, port):
+	def __init__(self, username, nick, status, address, port):
 
 		# Inicializando construtor da janela
 		super(QMainWindow, self).__init__()
@@ -37,8 +38,7 @@ class MainWindow(QMainWindow):
 		self.signal.chatLabel.connect(self.chatUpdate)
 
         # Iniciando worker e enviando parametros para conexão
-		self.client = Client(username, nick, address, port, self)
-
+		self.client = Client(username, nick, status, address, port, self)
 		# Carregando componentes da interface
 		self.setupUi()
 
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
 		self.gridLayout.addWidget(self.userList, 4, 0, 1, 1)
 
 		# LISTA USUÁRIOS DESCONECTADOS
-		self.userListOff = QtWidgets.QTextBrowser(self.centralwidget)
+		self.userListOff = QtWidgets.QListWidget(self.centralwidget)
 		self.userListOff.setMinimumSize(QtCore.QSize(200, 100))
 		self.userListOff.setMaximumSize(QtCore.QSize(250, 500))
 		font = QtGui.QFont()
@@ -251,11 +251,9 @@ class MainWindow(QMainWindow):
 
 	# Envia mensagem
 	def newMsg(self):
-
 		msg = self.msg.text() # recebe texto da caixa de msgm
 		if(msg): # se houver alguma coisa
-
-			# Chama função de envio de nova msgm no worker 
+				# Chama função de envio de nova msgm no worker 
 			self.client.sendMsg(msg, NEW_MESSAGE) # envia TAG de nova msgm
 			self.msg.setText('') # reseta texto
 
@@ -435,15 +433,15 @@ class MainWindow(QMainWindow):
 
 	# Atualizando lista de usuários conectados
 	def listUpdate(self, str):
-
 		# Se o sinal recebido for vazio reseta a lista
 		if(str == ''):
 			self.userList.clear()
-		
 		# Se não adiciona o nome enviado
 		else:
+			offline = ts.listOffline()			
 			self.userList.append(str)
-
+			self.userListOff.addItems(offline)		 	
+	
 	# Detecta a tecla Enter para enviar mensagem
 	def keyPressEvent(self, event):
 
