@@ -1,4 +1,5 @@
 import sys
+import math
 from config import*
 from windowClient import Client
 
@@ -47,7 +48,6 @@ class MainWindow(QMainWindow):
 		dist = ts.readUser(self.client.nick)
 		self.distancia = dist[2]
 		self.users = ts.readAllUsers()
-		print(self.users)
 		# Carregando componentes da interface
 		self.setupUi()
 
@@ -526,12 +526,36 @@ class MainWindow(QMainWindow):
 		else:
 			if(self.client.status == 'True' or self.client.status == True):
 				self.userList.append(str)
-				print(str)
 			else:
 				offline = ts.listOffline()	
-				self.userListOff.addItems(offline)		 	
-	
-	
+				self.userListOff.addItems(offline)	
+			loc = ts.readUser(self.client.nick)
+			p1 = loc[2][2]
+			p2 = loc[2][3]
+			dist = loc[2][4]
+			# print(p1,p2,dist)
+			online = ts.listOnline()
+			offline = ts.listOffline()	
+			usuarios = []
+			usuarios.append(online)
+			usuarios.append(offline)
+			for x in usuarios[0]:
+				for user in x:
+					locOther = ts.readUser(user)
+					print(locOther)
+					p1Other = locOther[2][2]
+					p2Other = locOther[2][3]
+					distancia = self.distancia2d(p1,p1Other,p2,p2Other)
+					# if(distancia <= dist):
+							
+
+	# função que permite calcular a distância entre dois pontos no plano (R2)
+	def distancia2d(x1, y1, x2, y2):
+		a = x2 - x1
+		b = y2 - y1
+		c = math.sqrt(math.pow(a, 2) + math.pow(b, 2))
+		return c
+
 	# Detecta a tecla Enter para enviar mensagem
 	def keyPressEvent(self, event):
 
