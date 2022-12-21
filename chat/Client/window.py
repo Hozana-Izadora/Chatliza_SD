@@ -43,6 +43,11 @@ class MainWindow(QMainWindow):
 		self.clientMqtt = Mqtt.connect_mqtt()
         # Iniciando worker e enviando parametros para conexão
 		self.client = Client(username, nick, status, address, port, self)
+
+		dist = ts.readUser(self.client.nick)
+		self.distancia = dist[2]
+		self.users = ts.readAllUsers()
+		print(self.users)
 		# Carregando componentes da interface
 		self.setupUi()
 
@@ -521,9 +526,11 @@ class MainWindow(QMainWindow):
 		else:
 			if(self.client.status == 'True' or self.client.status == True):
 				self.userList.append(str)
+				print(str)
 			else:
 				offline = ts.listOffline()	
 				self.userListOff.addItems(offline)		 	
+	
 	
 	# Detecta a tecla Enter para enviar mensagem
 	def keyPressEvent(self, event):

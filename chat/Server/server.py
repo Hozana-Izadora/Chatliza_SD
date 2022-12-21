@@ -65,7 +65,7 @@ class Server():
 
                 # Envia notificação da entrada aos clientes
                 _date = date() # recebe data e hora
-                msg = f"{NEW_MESSAGE}<p><i>***{username} entrou no chat ({_date}). Conexões ativas {len(self.clients)}.***</i></p>"
+                msg = f"{NEW_MESSAGE}<p><i>***{username} entrou no chat ({_date}). **</i></p>"
                 self.serverMsg(msg)
  
             # Caso acontece algum erro com a conexão encerra-se o servidor
@@ -137,6 +137,7 @@ class Server():
 
         # Para todos os clientes conectados
         for c in self.clients:
+            
             # Limpando lista de conexão
             message, send_length = encodeMsg(f"{CLEAR_LIST}")            
             c.conn.send(send_length)
@@ -153,7 +154,7 @@ class Server():
                 c.conn.send(send_length)
                 c.conn.send(message)
 
-    # Encerra o servidor
+        # Encerra o servidor
     def closeServer(self):
         
         # Espera input no terminal do servidor para encerrar aplicação
@@ -162,7 +163,6 @@ class Server():
         # Ao receber, seta variável para offline, encerra o socket e fecha app
         self.online = False
         self.s.close()
-
 
 # FUNÇÕES DE SUPORTE
 

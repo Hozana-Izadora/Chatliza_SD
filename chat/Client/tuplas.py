@@ -8,6 +8,7 @@ def checkNick(nick):
         return True
     except:
         return False
+
 def createUser(data):
     user = data[0]
     nick = data[1]
@@ -18,7 +19,8 @@ def createUser(data):
 
     tse.out(("NICK",nick))
     tse.out(("USER", nick, [user, status, latitude, longitude, distancia]))
-
+    
+    createUsers(data)
     user = tse.rdp(("USER",nick,[user, status, latitude, longitude, distancia]))
     print(f"User created {user}")
     if(status == True):
@@ -39,6 +41,26 @@ def createUser(data):
         except:
             tsOffline = [nick]
             tse.out(("OFFLINE",tuple(tsOffline)))
+
+def createUsers(data):
+    listUsers = []
+    try:
+        x = tse.inp(("USERS",object))
+        listUsers = list(x[1])
+        listUsers.append(data)
+        tse.out(("USERS", listUsers))
+    except:
+        listUsers = data 
+        tse.out(("USERS", listUsers))
+
+def readAllUsers():
+    try:
+        users = tse.rdp(("USERS",object))
+        return users
+    except:
+        return('Users not found')
+
+
 def readUser(nick):
     try:
         user = tse.rdp(("USER",nick, object))
@@ -60,6 +82,7 @@ def listOffline():
         return list(offline[1])
     except: 
         print(f"Tuple matching not found")
+
 def updateStatus(nick,status):
     tsOnline = []
     tsOffline = []
