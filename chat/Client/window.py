@@ -6,6 +6,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtCore import QCoreApplication
 import tuplas as ts
+from mqtt import *
+
 
 # Classe de sinais da janela do cliente 
 class MySignal(QtCore.QObject):
@@ -25,7 +27,7 @@ class MySignal(QtCore.QObject):
 # - cria janela sobre
 
 class MainWindow(QMainWindow):
-
+	
 	# Inicializa janela principal
 	def __init__(self, username, nick, status, address, port):
 
@@ -34,9 +36,11 @@ class MainWindow(QMainWindow):
 
 		# Define sinais e slots para mensagens do worker
 		self.signal = MySignal()
+		self.json_payload = {}
+		self.str_payload = {}
 		self.signal.listUser.connect(self.listUpdate)
 		self.signal.chatLabel.connect(self.chatUpdate)
-
+		self.clientMqtt = Mqtt.connect_mqtt()
         # Iniciando worker e enviando parametros para conexão
 		self.client = Client(username, nick, status, address, port, self)
 		# Carregando componentes da interface
@@ -182,6 +186,8 @@ class MainWindow(QMainWindow):
 		self.actionChangeName.setObjectName("actionChangeName")
 		self.actionChangeLocalizacao = QtWidgets.QAction(self)
 		self.actionChangeLocalizacao.setObjectName("actionChangeLocalizacao")
+		self.actionChangeStatus = QtWidgets.QAction(self)
+		self.actionChangeStatus.setObjectName("actionChangeStatus")
 		self.actionLimpar = QtWidgets.QAction(self)
 		self.actionLimpar.setObjectName("actionLimpar")
 		self.actionEncerrarConn = QtWidgets.QAction(self)
@@ -194,6 +200,7 @@ class MainWindow(QMainWindow):
 		# Define ações ao acessar a barra de menu
 		self.menuOptions.addAction(self.actionChangeName)
 		self.menuOptions.addAction(self.actionChangeLocalizacao)
+		self.menuOptions.addAction(self.actionChangeStatus)
 		self.menuOptions.addAction(self.actionEncerrarConn)
 		self.menuOptions.addAction(self.actionLimpar)
 		self.menuOptions.addSeparator() # separador
@@ -226,6 +233,7 @@ class MainWindow(QMainWindow):
 		self.menuOptions.setTitle(_translate("MainWindow", "Menu"))
 		self.actionChangeName.setText(_translate("MainWindow", "Alterar Nome"))
 		self.actionChangeLocalizacao.setText(_translate("MainWindow", "Alterar Localização"))
+		self.actionChangeStatus.setText(_translate("MainWindow", "Alterar Status"))
 		self.actionEncerrarConn.setText(_translate("MainWindow", "Encerrar Conexão"))
 		self.actionLimpar.setText(_translate("MainWindow", "Limpar Chat"))
 		self.actionQuit.setText(_translate("MainWindow", "Quit"))
@@ -244,6 +252,7 @@ class MainWindow(QMainWindow):
 		# Definindo rotinas (triggers) para quando uma das abas for acessada
 		self.actionChangeName.triggered.connect(self.changeNameWin)
 		self.actionChangeLocalizacao.triggered.connect(self.changeLocWin)
+		self.actionChangeStatus.triggered.connect(self.changeStatusWin)
 		self.actionEncerrarConn.triggered.connect(self.client.disconnect)
 		self.actionLimpar.triggered.connect(self.chat.clear)
 		self.actionQuit.triggered.connect(self.closeEvent)
@@ -254,7 +263,17 @@ class MainWindow(QMainWindow):
 		msg = self.msg.text() # recebe texto da caixa de msgm
 		if(msg): # se houver alguma coisa
 				# Chama função de envio de nova msgm no worker 
-			self.client.sendMsg(msg, NEW_MESSAGE) # envia TAG de nova msgm
+			if(self.client.status == True):
+				self.client.sendMsg(msg, NEW_MESSAGE) # envia TAG de nova msgm
+			else:
+				
+				self.json_payload["nick"] = self.client.nick
+				self.json_payload["msg"] = msg
+        
+				self.str_payload = "{}".format(self.json_payload,self.str_payload)
+				self.mqtt = Mqtt.publish(self.clientMqtt,self.str_payload)
+				print(self.mqtt)
+
 			self.msg.setText('') # reseta texto
 
 	# Troca de username - JANELA
@@ -305,6 +324,52 @@ class MainWindow(QMainWindow):
 		# Mostrar janela
 		self.nameWin.show()
 
+	def changeStatusWin(self):
+		# WINDOW NAME inicializando
+		self.statusWin = QMainWindow()
+		self.statusWin.setWindowTitle("Novo status")
+		self.statusWin.setStyleSheet("background-color: qlineargradient(spread:repeat, x1:1, y1:1, x2:1, y2:0, stop:0 rgba(200, 10, 100, 255), stop:0.971591 rgba(50, 100, 200, 255));")
+		sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Minimum)
+		sizePolicy.setHorizontalStretch(0)
+		sizePolicy.setVerticalStretch(0)
+		sizePolicy.setHeightForWidth(self.statusWin.sizePolicy().hasHeightForWidth())
+		self.statusWin.setSizePolicy(sizePolicy)
+		self.statusWin.setMinimumSize(QtCore.QSize(250, 140))
+		self.statusWin.setMaximumSize(QtCore.QSize(250, 140))
+
+		# LINE EDIT P/ NOVO STATUS
+		self.newStatus = QtWidgets.QLineEdit(self.statusWin)
+		self.newStatus.setGeometry(QtCore.QRect(30, 30, 181, 31))
+		font = QtGui.QFont()
+		font.setFamily("Calibri")
+		font.setPointSize(12)
+		self.newStatus.setFont(font)
+		self.newStatus.setStyleSheet("background-color: rgb(255, 255, 255);\n"
+		"background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(255, 255, 255, 115));\n"
+		"color: rgb(135, 97, 88);")
+
+		# BOTÃO DE ENVIO
+		self.sendStatus = QtWidgets.QPushButton(self.statusWin)
+		self.sendStatus.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		self.sendStatus.setMaximumSize(QtCore.QSize(80, 40))
+		self.sendStatus.setGeometry(QtCore.QRect(30, 90, 75, 23))
+		self.sendStatus.setText("Aceitar")
+		self.sendStatus.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(255, 255, 255, 0));\n")
+
+		# BOTÃO DE CANCELAMENTO
+		self.cancedStatus = QtWidgets.QPushButton(self.statusWin)
+		self.cancedStatus.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+		self.cancedStatus.setGeometry(QtCore.QRect(130, 90, 75, 23))
+		self.cancedStatus.setText("Cancelar")
+		self.cancedStatus.setStyleSheet("background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(255, 255, 255, 0));\n")
+
+		# SINAIS - envio e cancelamento
+		self.sendStatus.clicked.connect(self.changeStatus)
+		self.cancedStatus.clicked.connect(self.statusWin.close)
+
+		# Mostrar janela
+		self.statusWin.show()
+	
 	#Troca Localização - JANELA
 	def changeLocWin(self):
 		# WINDOW NAME inicializando
@@ -385,6 +450,18 @@ class MainWindow(QMainWindow):
 			self.client.sendMsg(name, CHANGE_NAME) # chamada função de envio do cliente envia TAG
 			self.nameWin.close() # fecha janela de troca de username
 
+	def changeStatus(self):
+		status = self.newStatus.text()
+		print(status)
+		if(status == 'False' or status == False):
+			self.client.status = False
+			ts.updateStatus(self.client.nick, status)
+			self.client.disconnect()
+			print("User desconectado")
+		if(status == 'True' or status == True):
+			ts.updateStatus(self.client.nick, status)
+		self.statusWin.close()
+
 	# Sobre - JANELA
 	def sobreWin(self):
 
@@ -429,7 +506,11 @@ class MainWindow(QMainWindow):
 	def chatUpdate(self, str):
 
 		# Adiciona mensagem ao text browser do chat
-		self.chat.append(str)
+		if(self.client.status == True or self.client.status == 'True'):
+			self.chat.append(str)
+		else:		
+			self.mqtt = Mqtt.subscribe(self.clientMqtt,'python/mqtt')
+			print(self.mqtt)
 
 	# Atualizando lista de usuários conectados
 	def listUpdate(self, str):
@@ -438,9 +519,11 @@ class MainWindow(QMainWindow):
 			self.userList.clear()
 		# Se não adiciona o nome enviado
 		else:
-			offline = ts.listOffline()			
-			self.userList.append(str)
-			self.userListOff.addItems(offline)		 	
+			if(self.client.status == 'True' or self.client.status == True):
+				self.userList.append(str)
+			else:
+				offline = ts.listOffline()	
+				self.userListOff.addItems(offline)		 	
 	
 	# Detecta a tecla Enter para enviar mensagem
 	def keyPressEvent(self, event):

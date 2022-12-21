@@ -14,41 +14,32 @@ class Client():
     def __init__(self, username, nick, status, address, port, win):
 
         #Verifica Status da conexão
-        if(status == True):
 
-            # Define família e tipo da conexão (AF_INET -> IPV4 | SOCK_STREAM -> TCP)
-            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            
-            # Conecta com servidor socket
-            ADDR = (address, int(port))
-            self.client.connect(ADDR)
+        # Define família e tipo da conexão (AF_INET -> IPV4 | SOCK_STREAM -> TCP)
+        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        # Conecta com servidor socket
+        ADDR = (address, int(port))
+        self.client.connect(ADDR)
 
-            # Recebe parâmetros
-            self.username = username # define username da instância
-            self.nick = nick
-            self.status = status
-            self.win = win # salva referência da janela p comunicação
-            self.online = True # seta cliente como online
-            # else:
-            #     self.online = False # seta cliente como offline
+        # Recebe parâmetros
+        self.username = username # define username da instância
+        self.nick = nick
+        self.status = status
+        self.win = win # salva referência da janela p comunicação
+        self.online = True # seta cliente como online
+        # else:
+        #     self.online = False # seta cliente como offline
 
-            # Enviando nome do usuário ao servidor
-            message, send_length = encodeMsg(self.username)
-            self.client.send(send_length) # tamanho
-            self.client.send(message) # msg
+        # Enviando nome do usuário ao servidor
+        message, send_length = encodeMsg(self.username)
+        self.client.send(send_length) # tamanho
+        self.client.send(message) # msg
 
-            # Criando Thread para receber mensagens
-            self.thread_recv = threading.Thread(target=self.recvMsg, args=())
-            self.thread_recv.start()
-
-        else:
-            self.mqtt =  Mqtt(self.nick, self.username, 'public', 'broker.emqx.io', port)
-            self.mqtt.subscribe(self.discover_topic)
-
-            self.mqtt.loop_forever()
-            thread = threading.Thread(target=self.run,args=())
-            thread.start()
-
+        # Criando Thread para receber mensagens
+        self.thread_recv = threading.Thread(target=self.recvMsg, args=())
+        self.thread_recv.start()
+      
     
     # Recebe mensagem
     def recvMsg(self):
