@@ -121,7 +121,8 @@ def updateStatus(nick,status):
             tse.out(("OFFLINE",tuple(tsOnline)))
 
     dataUser = tse.rdp(("USER",nick,object))
-    return dataUser      
+    return dataUser     
+
 def updateLatitude(nick,lat):
     user = tse.inp(("USER",nick,object))
     tsUser = list(user[2])
@@ -138,7 +139,7 @@ def updateLongitude(nick,lon):
 def updateDistancia(nick,dis):
     user = tse.inp(("USER",nick,object))
     tsUser = list(user[2])
-    # print(tsUser[4])
+    print(tsUser[4])
     tsUser[4] = dis
     tse.out(("USER",nick,tsUser))
     return(tse.rdp(("USER",nick,object)))
